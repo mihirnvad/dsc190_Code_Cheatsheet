@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.syntax import Syntax
 from rich.table import Table
 
+from cb import __version__
 from cb.clipboard import ClipboardError, copy_text
 from cb.models import Snippet, utc_now_iso
 from cb.search import search_snippets
@@ -25,10 +26,29 @@ from cb.storage import (
 )
 
 app = typer.Typer(
-    help="Code Boilerplate Vault: save, find, and reuse code snippets from the terminal."
+    help="Code Boilerplate Vault: save, find, and reuse code snippets from the terminal.",
+    invoke_without_command=True,
+    no_args_is_help=True,
 )
 console = Console()
 error_console = Console(stderr=True)
+
+
+@app.callback()
+def main(
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            help="Show the installed cb version and exit.",
+            is_eager=True,
+        ),
+    ] = False,
+) -> None:
+    """Run Code Boilerplate Vault."""
+    if version:
+        console.print(f"cb {__version__}")
+        raise typer.Exit()
 
 
 def _exit_with_error(message: str) -> None:

@@ -1,46 +1,107 @@
 # Code Boilerplate Vault (`cb`)
 
-Code Boilerplate Vault is a Python command-line snippet vault for students and data scientists. It is designed to save reusable code snippets, terminal commands, and assignment templates so they are easy to find and reuse from the terminal.
+Code Boilerplate Vault is a Python command-line snippet vault for students and data scientists. It saves reusable code snippets, terminal commands, and assignment templates so they can be searched, printed, deleted, and copied from the terminal.
 
-This repository is being built as a DSC 190 final project. The MVP is being developed in small commits so the repository has a clear, organic project history.
+The default storage path is:
 
-## Usage
-
-Core commands:
-
-```bash
-cb init
-cb add plot-hist --tag python --tag seaborn --description "Histogram template"
-cb list
-cb get plot-hist
-cb copy plot-hist
-cb search pandas
-cb delete plot-hist
+```text
+~/.cb/snippets.json
 ```
 
-Current progress: all core commands are implemented. The next implementation slice will focus on README polish, command examples, and final cross-platform cleanup.
+Snippets are stored locally as JSON, so the MVP stays lightweight and easy to inspect.
+
+## Why This Is Useful
+
+Coursework and data science projects often reuse the same small pieces of code: plotting templates, pandas patterns, setup commands, Git commands, and assignment starter files. `cb` keeps those examples in one searchable local vault instead of scattering them across old notebooks, notes, and browser tabs.
 
 ## Installation
 
-During local development:
+Install dependencies for local development with `uv`:
 
 ```bash
 uv sync
+```
+
+Run the CLI from the repository:
+
+```bash
 uv run cb --help
 ```
 
-After the package is pushed to GitHub, it should be installable with:
+After pushing the project to GitHub, install it as a command-line tool with:
 
 ```bash
-uv add "git+https://github.com/<your-username>/<your-repo>.git"
+uv tool install "git+https://github.com/<your-username>/<your-repo>.git"
+```
+
+## Usage
+
+Create the local storage folder and JSON file:
+
+```bash
+cb init
+```
+
+Add a snippet. This opens your default terminal editor:
+
+```bash
+cb add plot-hist --tag python --tag seaborn --description "Histogram template"
+```
+
+List all snippets:
+
+```bash
+cb list
+```
+
+Print a snippet:
+
+```bash
+cb get plot-hist
+```
+
+Copy a snippet body to the clipboard:
+
+```bash
+cb copy plot-hist
+```
+
+Search names, descriptions, tags, and snippet bodies:
+
+```bash
+cb search pandas
+```
+
+Delete a snippet:
+
+```bash
+cb delete plot-hist
+```
+
+Show the installed version:
+
+```bash
+cb --version
 ```
 
 ## Development
 
-Run tests with:
+Run tests:
 
 ```bash
 uv run pytest
+```
+
+Use a temporary storage file while testing commands manually:
+
+```bash
+export CB_STORAGE_PATH="$PWD/scratch-snippets.json"
+```
+
+On PowerShell:
+
+```powershell
+$env:CB_STORAGE_PATH = "$PWD\scratch-snippets.json"
 ```
 
 ## Future Improvements

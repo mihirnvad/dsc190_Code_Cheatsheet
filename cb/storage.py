@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 from cb.models import Snippet
 
@@ -22,6 +23,16 @@ class StorageCorruptionError(StorageError):
 
 class SnippetNotFoundError(StorageError):
     """Raised when a requested snippet does not exist."""
+
+
+REQUIRED_SNIPPET_FIELDS = {
+    "name",
+    "description",
+    "tags",
+    "body",
+    "created_at",
+    "updated_at",
+}
 
 
 def get_storage_path(path: Path | None = None) -> Path:
@@ -56,13 +67,34 @@ def load_snippets(path: Path | None = None) -> list[Snippet]:
     if not isinstance(raw_data, list):
         raise StorageCorruptionError(f"Expected a list of snippets in {storage_path}")
 
-    snippets: list[Snippet] = []
-    for item in raw_data:
-        if not isinstance(item, dict):
-            raise StorageCorruptionError(f"Expected snippet objects in {storage_path}")
-        snippets.append(Snippet.from_dict(item))
+    snippets = [_snippet_from_raw(item, storage_path) for item in raw_data]
 
     return snippets
+
+
+def _snippet_from_raw(item: Any, storage_path: Path) -> Snippet:
+    if not isinstance(item, dict):
+        raise StorageCorruptionError(f"Expected snippet objects in {storage_path}")
+
+    missing_fields = REQUIRED_SNIPPET_FIELDS - item.keys()
+    if missing_fields:
+        fields = ", ".join(sorted(missing_fields))
+        raise StorageCorruptionError(f"Snippet in {storage_path} is missing: {fields}")
+
+    string_fields = ["name", "description", "body", "created_at", "updated_at"]
+    for field_name in string_fields:
+        if not isinstance(item[field_name], str):
+            raise StorageCorruptionError(
+                f"Snippet field '{field_name}' in {storage_path} must be text"
+            )
+
+    tags = item["tags"]
+    if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
+        raise StorageCorruptionError(
+            f"Snippet field 'tags' in {storage_path} must be a list of text"
+        )
+
+    return Snippet.from_dict(item)
 
 
 def save_snippets(snippets: list[Snippet], path: Path | None = None) -> Path:

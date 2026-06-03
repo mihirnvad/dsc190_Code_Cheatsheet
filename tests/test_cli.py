@@ -10,6 +10,13 @@ from cb.storage import load_snippets, save_snippets
 runner = CliRunner()
 
 
+def test_version_option_prints_installed_version() -> None:
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert result.output.strip().startswith("cb ")
+
+
 def test_add_saves_editor_text(tmp_path: Path, monkeypatch) -> None:
     storage_path = tmp_path / "snippets.json"
     monkeypatch.setattr(cb.cli.click, "edit", lambda text, extension: "print('hi')\n")

@@ -91,3 +91,31 @@ def test_load_snippets_reports_corrupted_json(tmp_path: Path) -> None:
 
     with pytest.raises(StorageCorruptionError):
         load_snippets(storage_path)
+
+
+def test_load_snippets_reports_missing_snippet_fields(tmp_path: Path) -> None:
+    storage_path = tmp_path / "snippets.json"
+    storage_path.write_text('[{"name": "plot-hist"}]', encoding="utf-8")
+
+    with pytest.raises(StorageCorruptionError, match="missing"):
+        load_snippets(storage_path)
+
+
+def test_load_snippets_reports_invalid_tag_field(tmp_path: Path) -> None:
+    storage_path = tmp_path / "snippets.json"
+    storage_path.write_text(
+        """[
+          {
+            "name": "plot-hist",
+            "description": "Histogram template",
+            "tags": "python",
+            "body": "import seaborn as sns",
+            "created_at": "2026-06-02T00:00:00+00:00",
+            "updated_at": "2026-06-02T00:00:00+00:00"
+          }
+        ]""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(StorageCorruptionError, match="tags"):
+        load_snippets(storage_path)
