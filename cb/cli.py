@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.syntax import Syntax
 from rich.table import Table
 
+from cb.clipboard import ClipboardError, copy_text
 from cb.models import Snippet, utc_now_iso
 from cb.search import search_snippets
 from cb.storage import (
@@ -164,8 +165,17 @@ def get(name: Annotated[str, typer.Argument(help="Snippet name to print.")]) -> 
 @app.command("copy")
 def copy_snippet(name: Annotated[str, typer.Argument(help="Snippet name to copy.")]) -> None:
     """Copy a snippet body to the clipboard."""
-    _ = name
-    console.print("[yellow]TODO:[/yellow] implement clipboard copying.")
+    snippets = _load_snippets_or_exit()
+    snippet = find_snippet(snippets, name)
+    if snippet is None:
+        _exit_with_error(f"No snippet named '{name}'")
+
+    try:
+        copy_text(snippet.body)
+    except ClipboardError as exc:
+        _exit_with_error(str(exc))
+
+    console.print(f"[green]Copied snippet to clipboard:[/green] {name}")
 
 
 @app.command("list")

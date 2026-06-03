@@ -18,7 +18,7 @@ cb search pandas
 cb delete plot-hist
 ```
 
-Current progress: `init`, `add`, `get`, `list`, `search`, and `delete` are implemented. Clipboard support for `copy` is planned for the next implementation slice.
+Current progress: all core commands are implemented. The next implementation slice will focus on README polish, command examples, and final cross-platform cleanup.
 
 ## Installation
 

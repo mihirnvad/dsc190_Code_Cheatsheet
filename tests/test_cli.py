@@ -90,6 +90,38 @@ def test_search_prints_matching_snippets(tmp_path: Path) -> None:
     assert "git-status" not in result.output
 
 
+def test_copy_copies_snippet_body(tmp_path: Path, monkeypatch) -> None:
+    storage_path = tmp_path / "snippets.json"
+    save_snippets([Snippet(name="git-status", body="git status\n")], storage_path)
+    copied_text = []
+    monkeypatch.setattr(cb.cli, "copy_text", copied_text.append)
+
+    result = runner.invoke(
+        app, ["copy", "git-status"], env={"CB_STORAGE_PATH": str(storage_path)}
+    )
+
+    assert result.exit_code == 0
+    assert copied_text == ["git status\n"]
+    assert "Copied snippet to clipboard" in result.output
+
+
+def test_copy_reports_clipboard_error(tmp_path: Path, monkeypatch) -> None:
+    storage_path = tmp_path / "snippets.json"
+    save_snippets([Snippet(name="git-status", body="git status\n")], storage_path)
+
+    def fail_copy(text: str) -> None:
+        raise cb.cli.ClipboardError("Clipboard unavailable")
+
+    monkeypatch.setattr(cb.cli, "copy_text", fail_copy)
+
+    result = runner.invoke(
+        app, ["copy", "git-status"], env={"CB_STORAGE_PATH": str(storage_path)}
+    )
+
+    assert result.exit_code == 1
+    assert "Clipboard unavailable" in result.output
+
+
 def test_delete_removes_snippet_after_confirmation(tmp_path: Path) -> None:
     storage_path = tmp_path / "snippets.json"
     save_snippets([Snippet(name="plot-hist")], storage_path)
