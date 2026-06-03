@@ -48,6 +48,8 @@ Add a snippet. This opens your default terminal editor:
 cb add plot-hist --tag python --tag seaborn --description "Histogram template"
 ```
 
+If a snippet with the same name already exists, `cb` asks before overwriting it. When overwriting, omitted tags or descriptions keep their existing values.
+
 List all snippets:
 
 ```bash

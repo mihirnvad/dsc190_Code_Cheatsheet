@@ -43,6 +43,112 @@ def test_add_saves_editor_text(tmp_path: Path, monkeypatch) -> None:
     assert snippets[0].body == "print('hi')\n"
 
 
+def test_add_overwrites_body_and_preserves_metadata_when_flags_are_omitted(
+    tmp_path: Path, monkeypatch
+) -> None:
+    storage_path = tmp_path / "snippets.json"
+    existing = Snippet(
+        name="plot-hist",
+        description="Histogram template",
+        tags=["python", "seaborn"],
+        body="old body\n",
+        created_at="2026-06-02T00:00:00+00:00",
+        updated_at="2026-06-02T00:00:00+00:00",
+    )
+    save_snippets([existing], storage_path)
+    monkeypatch.setattr(cb.cli.click, "edit", lambda text, extension: "new body\n")
+    monkeypatch.setattr(cb.cli, "utc_now_iso", lambda: "2026-06-03T00:00:00+00:00")
+
+    result = runner.invoke(
+        app,
+        ["add", "plot-hist"],
+        input="y\n",
+        env={"CB_STORAGE_PATH": str(storage_path)},
+    )
+
+    assert result.exit_code == 0
+    [snippet] = load_snippets(storage_path)
+    assert snippet.description == existing.description
+    assert snippet.tags == existing.tags
+    assert snippet.body == "new body\n"
+    assert snippet.created_at == existing.created_at
+    assert snippet.updated_at == "2026-06-03T00:00:00+00:00"
+
+
+def test_add_replaces_metadata_when_overwrite_flags_are_supplied(
+    tmp_path: Path, monkeypatch
+) -> None:
+    storage_path = tmp_path / "snippets.json"
+    save_snippets(
+        [
+            Snippet(
+                name="plot-hist",
+                description="Old description",
+                tags=["old"],
+                body="old body\n",
+            )
+        ],
+        storage_path,
+    )
+    monkeypatch.setattr(cb.cli.click, "edit", lambda text, extension: "new body\n")
+
+    result = runner.invoke(
+        app,
+        [
+            "add",
+            "plot-hist",
+            "--description",
+            "New description",
+            "--tag",
+            "python",
+        ],
+        input="y\n",
+        env={"CB_STORAGE_PATH": str(storage_path)},
+    )
+
+    assert result.exit_code == 0
+    [snippet] = load_snippets(storage_path)
+    assert snippet.description == "New description"
+    assert snippet.tags == ["python"]
+
+
+def test_add_cancelled_overwrite_leaves_existing_snippet(
+    tmp_path: Path, monkeypatch
+) -> None:
+    storage_path = tmp_path / "snippets.json"
+    existing = Snippet(name="plot-hist", body="old body\n")
+    save_snippets([existing], storage_path)
+
+    def fail_edit(text: str, extension: str) -> str:
+        raise AssertionError("Editor should not open after cancelling overwrite")
+
+    monkeypatch.setattr(cb.cli.click, "edit", fail_edit)
+
+    result = runner.invoke(
+        app,
+        ["add", "plot-hist"],
+        input="n\n",
+        env={"CB_STORAGE_PATH": str(storage_path)},
+    )
+
+    assert result.exit_code == 0
+    assert "Cancelled" in result.output
+    assert load_snippets(storage_path) == [existing]
+
+
+def test_add_empty_editor_text_does_not_save(tmp_path: Path, monkeypatch) -> None:
+    storage_path = tmp_path / "snippets.json"
+    monkeypatch.setattr(cb.cli.click, "edit", lambda text, extension: "\n\n")
+
+    result = runner.invoke(
+        app, ["add", "empty"], env={"CB_STORAGE_PATH": str(storage_path)}
+    )
+
+    assert result.exit_code == 0
+    assert "Nothing saved" in result.output
+    assert load_snippets(storage_path) == []
+
+
 def test_get_prints_snippet_metadata_and_body(tmp_path: Path) -> None:
     storage_path = tmp_path / "snippets.json"
     save_snippets(
@@ -142,6 +248,23 @@ def test_delete_removes_snippet_after_confirmation(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     assert load_snippets(storage_path) == []
+
+
+def test_delete_cancelled_keeps_snippet(tmp_path: Path) -> None:
+    storage_path = tmp_path / "snippets.json"
+    snippet = Snippet(name="plot-hist")
+    save_snippets([snippet], storage_path)
+
+    result = runner.invoke(
+        app,
+        ["delete", "plot-hist"],
+        input="n\n",
+        env={"CB_STORAGE_PATH": str(storage_path)},
+    )
+
+    assert result.exit_code == 0
+    assert "Cancelled" in result.output
+    assert load_snippets(storage_path) == [snippet]
 
 
 def test_missing_snippet_exits_with_error(tmp_path: Path) -> None:

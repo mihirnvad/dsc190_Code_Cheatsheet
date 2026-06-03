@@ -79,6 +79,22 @@ def _normalize_tags(tags: list[str] | None) -> list[str]:
     return normalized_tags
 
 
+def _tags_for_add(tags: list[str] | None, existing: Snippet | None) -> list[str]:
+    if tags is not None:
+        return _normalize_tags(tags)
+    if existing is not None:
+        return existing.tags
+    return []
+
+
+def _description_for_add(description: str | None, existing: Snippet | None) -> str:
+    if description is not None:
+        return description.strip()
+    if existing is not None:
+        return existing.description
+    return ""
+
+
 def _guess_lexer(snippet: Snippet) -> str:
     tags = {tag.casefold() for tag in snippet.tags}
     body_start = snippet.body.strip().splitlines()[0] if snippet.body.strip() else ""
@@ -129,9 +145,9 @@ def add(
         typer.Option("--tag", "-t", help="Tag for the snippet. Can be used multiple times."),
     ] = None,
     description: Annotated[
-        str,
+        str | None,
         typer.Option("--description", "-d", help="Short description of the snippet."),
-    ] = "",
+    ] = None,
 ) -> None:
     """Open an editor and save a snippet."""
     snippets = _load_snippets_or_exit()
@@ -155,8 +171,8 @@ def add(
     now = utc_now_iso()
     snippet = Snippet(
         name=name,
-        description=description.strip(),
-        tags=_normalize_tags(tag),
+        description=_description_for_add(description, existing),
+        tags=_tags_for_add(tag, existing),
         body=edited_text.rstrip() + "\n",
         created_at=existing.created_at if existing is not None else now,
         updated_at=now,
