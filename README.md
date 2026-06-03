@@ -2,11 +2,11 @@
 
 Code Boilerplate Vault is a Python command-line snippet vault for students and data scientists. It is designed to save reusable code snippets, terminal commands, and assignment templates so they are easy to find and reuse from the terminal.
 
-This repository is being built as a DSC 190 final project. The first commit focuses on the package frame; the next commits will fill in the full MVP behavior.
+This repository is being built as a DSC 190 final project. The MVP is being developed in small commits so the repository has a clear, organic project history.
 
 ## Usage
 
-Planned commands:
+Core commands:
 
 ```bash
 cb init
@@ -17,6 +17,8 @@ cb copy plot-hist
 cb search pandas
 cb delete plot-hist
 ```
+
+Current progress: `init`, `add`, `get`, `list`, `search`, and `delete` are implemented. Clipboard support for `copy` is planned for the next implementation slice.
 
 ## Installation
 

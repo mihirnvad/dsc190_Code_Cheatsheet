@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from cb.models import Snippet
 
 DEFAULT_STORAGE_PATH = Path.home() / ".cb" / "snippets.json"
+STORAGE_PATH_ENV_VAR = "CB_STORAGE_PATH"
 
 
 class StorageError(Exception):
@@ -18,8 +20,19 @@ class StorageCorruptionError(StorageError):
     """Raised when the snippets file cannot be parsed."""
 
 
+class SnippetNotFoundError(StorageError):
+    """Raised when a requested snippet does not exist."""
+
+
 def get_storage_path(path: Path | None = None) -> Path:
-    return path or DEFAULT_STORAGE_PATH
+    if path is not None:
+        return path
+
+    configured_path = os.environ.get(STORAGE_PATH_ENV_VAR)
+    if configured_path:
+        return Path(configured_path).expanduser()
+
+    return DEFAULT_STORAGE_PATH
 
 
 def init_storage(path: Path | None = None) -> Path:
@@ -57,3 +70,38 @@ def save_snippets(snippets: list[Snippet], path: Path | None = None) -> Path:
     data = [snippet.to_dict() for snippet in snippets]
     storage_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     return storage_path
+
+
+def find_snippet(snippets: list[Snippet], name: str) -> Snippet | None:
+    for snippet in snippets:
+        if snippet.name == name:
+            return snippet
+    return None
+
+
+def get_snippet(name: str, path: Path | None = None) -> Snippet:
+    snippet = find_snippet(load_snippets(path), name)
+    if snippet is None:
+        raise SnippetNotFoundError(f"No snippet named '{name}'")
+    return snippet
+
+
+def upsert_snippet(snippets: list[Snippet], snippet: Snippet) -> list[Snippet]:
+    updated_snippets = list(snippets)
+    for index, existing in enumerate(updated_snippets):
+        if existing.name == snippet.name:
+            updated_snippets[index] = snippet
+            return updated_snippets
+
+    updated_snippets.append(snippet)
+    return updated_snippets
+
+
+def delete_snippet(name: str, path: Path | None = None) -> Snippet:
+    snippets = load_snippets(path)
+    snippet = find_snippet(snippets, name)
+    if snippet is None:
+        raise SnippetNotFoundError(f"No snippet named '{name}'")
+
+    save_snippets([item for item in snippets if item.name != name], path)
+    return snippet

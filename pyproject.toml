@@ -5,6 +5,7 @@ description = "A local command-line snippet vault for students and data scientis
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "click>=8.1.0",
     "pyperclip>=1.9.0",
     "rich>=13.7.0",
     "typer>=0.12.0",
