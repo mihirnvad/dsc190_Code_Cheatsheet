@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated
 
 import click
@@ -95,6 +96,21 @@ def _description_for_add(description: str | None, existing: Snippet | None) -> s
     return ""
 
 
+def _format_timestamp(timestamp: str) -> str:
+    if not timestamp:
+        return "-"
+
+    try:
+        parsed_timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        return timestamp
+
+    if parsed_timestamp.tzinfo is not None:
+        parsed_timestamp = parsed_timestamp.astimezone()
+
+    return parsed_timestamp.strftime("%Y-%m-%d %H:%M")
+
+
 def _guess_lexer(snippet: Snippet) -> str:
     tags = {tag.casefold() for tag in snippet.tags}
     body_start = snippet.body.strip().splitlines()[0] if snippet.body.strip() else ""
@@ -123,8 +139,8 @@ def _print_snippet_table(snippets: list[Snippet], title: str) -> None:
             snippet.name,
             snippet.description or "-",
             ", ".join(snippet.tags) or "-",
-            snippet.created_at,
-            snippet.updated_at,
+            _format_timestamp(snippet.created_at),
+            _format_timestamp(snippet.updated_at),
         )
 
     console.print(table)

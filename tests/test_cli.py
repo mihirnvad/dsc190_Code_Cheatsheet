@@ -186,6 +186,32 @@ def test_list_prints_saved_snippets(tmp_path: Path) -> None:
     assert "git" in result.output
 
 
+def test_list_formats_iso_timestamps_for_readability(tmp_path: Path) -> None:
+    storage_path = tmp_path / "snippets.json"
+    save_snippets(
+        [
+            Snippet(
+                name="plot-hist",
+                created_at="2026-06-02T10:30:00",
+                updated_at="2026-06-03T11:45:00",
+            )
+        ],
+        storage_path,
+    )
+
+    result = runner.invoke(app, ["list"], env={"CB_STORAGE_PATH": str(storage_path)})
+
+    assert result.exit_code == 0
+    assert "2026-06-02 10:30" in result.output
+    assert "2026-06-03 11:45" in result.output
+    assert "2026-06-02T10:30:00" not in result.output
+
+
+def test_format_timestamp_keeps_unexpected_values() -> None:
+    assert cb.cli._format_timestamp("not-a-date") == "not-a-date"
+    assert cb.cli._format_timestamp("") == "-"
+
+
 def test_search_prints_matching_snippets(tmp_path: Path) -> None:
     storage_path = tmp_path / "snippets.json"
     save_snippets(
