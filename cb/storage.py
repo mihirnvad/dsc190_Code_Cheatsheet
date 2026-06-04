@@ -60,7 +60,7 @@ def load_snippets(path: Path | None = None) -> list[Snippet]:
         return []
 
     try:
-        raw_data = json.loads(storage_path.read_text(encoding="utf-8"))
+        raw_data = json.loads(storage_path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError as exc:
         raise StorageCorruptionError(f"Could not parse {storage_path}") from exc
 

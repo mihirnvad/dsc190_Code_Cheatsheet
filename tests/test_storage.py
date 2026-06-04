@@ -40,6 +40,25 @@ def test_save_and_load_snippets_round_trip(tmp_path: Path) -> None:
     assert load_snippets(storage_path) == [snippet]
 
 
+def test_load_snippets_accepts_utf8_bom_file(tmp_path: Path) -> None:
+    storage_path = tmp_path / "snippets.json"
+    storage_path.write_text(
+        """[
+          {
+            "name": "plot-hist",
+            "description": "Histogram template",
+            "tags": ["python", "seaborn"],
+            "body": "import seaborn as sns",
+            "created_at": "2026-06-02T00:00:00+00:00",
+            "updated_at": "2026-06-02T00:00:00+00:00"
+          }
+        ]""",
+        encoding="utf-8-sig",
+    )
+
+    assert load_snippets(storage_path)[0].name == "plot-hist"
+
+
 def test_upsert_replaces_existing_snippet() -> None:
     original = Snippet(
         name="plot-hist",

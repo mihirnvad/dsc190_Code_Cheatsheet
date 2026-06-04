@@ -28,10 +28,16 @@ Run the CLI from the repository:
 uv run cb --help
 ```
 
-After pushing the project to GitHub, install it as a command-line tool with:
+For another `uv` project, install this package from GitHub with:
 
 ```bash
-uv tool install "git+https://github.com/<your-username>/<your-repo>.git"
+uv add "git+https://github.com/mihirnvad/dsc190_Code_Cheatsheet.git"
+```
+
+To install `cb` as a standalone command-line tool, use:
+
+```bash
+uv tool install "git+https://github.com/mihirnvad/dsc190_Code_Cheatsheet.git"
 ```
 
 ## Usage
@@ -105,6 +111,10 @@ On PowerShell:
 ```powershell
 $env:CB_STORAGE_PATH = "$PWD\scratch-snippets.json"
 ```
+
+## Troubleshooting
+
+`cb copy` uses `pyperclip`, which depends on the operating system clipboard. It should work out of the box on macOS, Windows, and most desktop Linux environments. On minimal Linux environments, install a clipboard backend such as `xclip` or `xsel` if copying fails.
 
 ## Future Improvements
 
