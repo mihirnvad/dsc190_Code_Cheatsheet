@@ -1,6 +1,6 @@
-# Code Boilerplate Vault (`cb`)
+# Code Boilerplate (`cb`)
 
-`cb` is a local command-line vault for reusable code snippets, terminal commands, and assignment templates. It helps students and data scientists keep useful boilerplate searchable and ready to reuse without digging through old notebooks or projects.
+`cb` is a local command line tool for reusable code snippets, terminal commands, and assignment templates. It solves the problem of wasting time searching for multiple, seperate code snippets that needs to be used often. It keeps code and commands stored locally with quick and easy access with clipboard support.
 
 ## What `cb` Can Do
 
@@ -9,7 +9,7 @@
 - Search names, descriptions, tags, and snippet bodies.
 - Print snippets with syntax highlighting when possible.
 - Copy snippet bodies directly to the clipboard.
-- List the entire vault in a readable Rich table.
+- List the entire library in a table.
 - Safely overwrite or delete snippets with confirmation prompts.
 - Store everything locally in an inspectable JSON file.
 
@@ -46,7 +46,7 @@ cb delete plot-hist
 
 | Command | Ability |
 | --- | --- |
-| `cb init` | Create the local vault directory and JSON file. |
+| `cb init` | Create the local library directory and JSON file. |
 | `cb add NAME` | Open an editor and save a new snippet. |
 | `cb get NAME` | Show snippet metadata and highlighted code. |
 | `cb copy NAME` | Copy only the snippet body to the clipboard. |
@@ -155,7 +155,7 @@ Run the tests:
 uv run pytest
 ```
 
-Use a temporary vault during manual testing:
+Use a temporary library during manual testing:
 
 ```bash
 export CB_STORAGE_PATH="$PWD/scratch-snippets.json"
