@@ -1,125 +1,162 @@
 # Code Boilerplate Vault (`cb`)
 
-Code Boilerplate Vault is a Python command-line snippet vault for students and data scientists. It saves reusable code snippets, terminal commands, and assignment templates so they can be searched, printed, deleted, and copied from the terminal.
+`cb` is a local command-line vault for reusable code snippets, terminal commands, and assignment templates. It helps students and data scientists keep useful boilerplate searchable and ready to reuse without digging through old notebooks or projects.
 
-The default storage path is:
+## What `cb` Can Do
 
-```text
-~/.cb/snippets.json
-```
+- Save snippets using your default terminal editor.
+- Organize snippets with descriptions and multiple tags.
+- Search names, descriptions, tags, and snippet bodies.
+- Print snippets with syntax highlighting when possible.
+- Copy snippet bodies directly to the clipboard.
+- List the entire vault in a readable Rich table.
+- Safely overwrite or delete snippets with confirmation prompts.
+- Store everything locally in an inspectable JSON file.
 
-Snippets are stored locally as JSON, so the MVP stays lightweight and easy to inspect.
-
-## Why This Is Useful
-
-Coursework and data science projects often reuse the same small pieces of code: plotting templates, pandas patterns, setup commands, Git commands, and assignment starter files. `cb` keeps those examples in one searchable local vault instead of scattering them across old notebooks, notes, and browser tabs.
-
-## Installation
-
-Install dependencies for local development with `uv`:
+Save a reusable plotting snippet:
 
 ```bash
-uv sync
+cb add plot-hist \
+  --tag python \
+  --tag seaborn \
+  --description "Histogram template"
 ```
 
-Run the CLI from the repository:
-
-```bash
-uv run cb --help
-```
-
-For another `uv` project, install this package from GitHub with:
-
-```bash
-uv add "git+https://github.com/mihirnvad/dsc190_Code_Cheatsheet.git"
-```
-
-To install `cb` as a standalone command-line tool, use:
-
-```bash
-uv tool install "git+https://github.com/mihirnvad/dsc190_Code_Cheatsheet.git"
-```
-
-## Usage
-
-Create the local storage folder and JSON file:
-
-```bash
-cb init
-```
-
-Add a snippet. This opens your default terminal editor:
-
-```bash
-cb add plot-hist --tag python --tag seaborn --description "Histogram template"
-```
-
-If a snippet with the same name already exists, `cb` asks before overwriting it. When overwriting, omitted tags or descriptions keep their existing values.
-
-List all snippets:
+Your default editor opens so you can enter the snippet body. After saving and closing the editor:
 
 ```bash
 cb list
-```
-
-Print a snippet:
-
-```bash
 cb get plot-hist
-```
-
-Copy a snippet body to the clipboard:
-
-```bash
 cb copy plot-hist
 ```
 
-Search names, descriptions, tags, and snippet bodies:
+Find it later by name, description, tag, or code:
 
 ```bash
-cb search pandas
+cb search seaborn
 ```
 
-Delete a snippet:
+Remove it when it is no longer needed:
 
 ```bash
 cb delete plot-hist
 ```
 
-Show the installed version:
+## Commands
+
+| Command | Ability |
+| --- | --- |
+| `cb init` | Create the local vault directory and JSON file. |
+| `cb add NAME` | Open an editor and save a new snippet. |
+| `cb get NAME` | Show snippet metadata and highlighted code. |
+| `cb copy NAME` | Copy only the snippet body to the clipboard. |
+| `cb list` | Display all snippets in a table. |
+| `cb search QUERY` | Search every stored snippet field. |
+| `cb delete NAME` | Confirm and delete a snippet. |
+| `cb --version` | Show the installed version. |
+
+### Add
 
 ```bash
-cb --version
+cb add NAME [--tag TAG]... [--description TEXT]
+```
+
+`--tag` may be repeated:
+
+```bash
+cb add pandas-groupby \
+  --tag python \
+  --tag pandas \
+  --description "Group and aggregate a DataFrame"
+```
+
+If `NAME` already exists, `cb` asks before overwriting it. Existing tags and descriptions are preserved when their options are omitted.
+
+### Get
+
+```bash
+cb get pandas-groupby
+```
+
+Displays the snippet name, description, tags, timestamps, and body. Python and shell-like snippets receive syntax highlighting when detected.
+
+### Copy
+
+```bash
+cb copy pandas-groupby
+```
+
+Copies the stored body exactly as saved and prints a success message.
+
+### List
+
+```bash
+cb list
+```
+
+Shows name, description, tags, creation time, and update time for every snippet.
+
+### Search
+
+```bash
+cb search groupby
+cb search pandas
+cb search "DataFrame"
+```
+
+Search is case-insensitive and checks:
+
+- snippet names
+- descriptions
+- tags
+- snippet bodies
+
+### Delete
+
+```bash
+cb delete pandas-groupby
+```
+
+## Stored Data
+
+Each snippet is saved locally with this structure:
+
+```json
+{
+  "name": "plot-hist",
+  "description": "Seaborn histogram template",
+  "tags": ["python", "plot", "seaborn"],
+  "body": "import seaborn as sns\nsns.histplot(df[\"age\"])\n",
+  "created_at": "2026-06-05T18:30:00+00:00",
+  "updated_at": "2026-06-05T18:30:00+00:00"
+}
+```
+
+
+## Installation
+
+Run the project locally:
+
+```bash
+uv sync
+uv run cb --help
+```
+
+Add to terminal with:
+```bash
+uv add "git+https://github.com/mihirnvad/dsc190_Code_Cheatsheet.git"
 ```
 
 ## Development
 
-Run tests:
+Run the tests:
 
 ```bash
 uv run pytest
 ```
 
-Use a temporary storage file while testing commands manually:
+Use a temporary vault during manual testing:
 
 ```bash
 export CB_STORAGE_PATH="$PWD/scratch-snippets.json"
 ```
-
-On PowerShell:
-
-```powershell
-$env:CB_STORAGE_PATH = "$PWD\scratch-snippets.json"
-```
-
-## Troubleshooting
-
-`cb copy` uses `pyperclip`, which depends on the operating system clipboard. It should work out of the box on macOS, Windows, and most desktop Linux environments. On minimal Linux environments, install a clipboard backend such as `xclip` or `xsel` if copying fails.
-
-## Future Improvements
-
-- categories
-- import/export markdown
-- fuzzy search
-- project-specific snippet collections
-- optional sync
