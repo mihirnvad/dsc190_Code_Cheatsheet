@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Dict, List
 
 
 def utc_now_iso() -> str:
@@ -18,13 +18,13 @@ class Snippet:
 
     name: str
     description: str = ""
-    tags: list[str] = field(default_factory=list)
+    tags: List[str] = field(default_factory=list)
     body: str = ""
     created_at: str = field(default_factory=utc_now_iso)
     updated_at: str = field(default_factory=utc_now_iso)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "Snippet":
+    def from_dict(cls, data: Dict[str, Any]) -> "Snippet":
         return cls(
             name=str(data.get("name", "")),
             description=str(data.get("description", "")),
@@ -34,7 +34,7 @@ class Snippet:
             updated_at=str(data.get("updated_at", "")),
         )
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
             "description": self.description,

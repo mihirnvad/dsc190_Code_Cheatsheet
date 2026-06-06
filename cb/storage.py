@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, List, Optional
 
 from cb.models import Snippet
 
@@ -35,7 +35,7 @@ REQUIRED_SNIPPET_FIELDS = {
 }
 
 
-def get_storage_path(path: Path | None = None) -> Path:
+def get_storage_path(path: Optional[Path] = None) -> Path:
     if path is not None:
         return path
 
@@ -46,7 +46,7 @@ def get_storage_path(path: Path | None = None) -> Path:
     return DEFAULT_STORAGE_PATH
 
 
-def init_storage(path: Path | None = None) -> Path:
+def init_storage(path: Optional[Path] = None) -> Path:
     storage_path = get_storage_path(path)
     storage_path.parent.mkdir(parents=True, exist_ok=True)
     if not storage_path.exists():
@@ -54,7 +54,7 @@ def init_storage(path: Path | None = None) -> Path:
     return storage_path
 
 
-def load_snippets(path: Path | None = None) -> list[Snippet]:
+def load_snippets(path: Optional[Path] = None) -> List[Snippet]:
     storage_path = get_storage_path(path)
     if not storage_path.exists():
         return []
@@ -97,28 +97,28 @@ def _snippet_from_raw(item: Any, storage_path: Path) -> Snippet:
     return Snippet.from_dict(item)
 
 
-def save_snippets(snippets: list[Snippet], path: Path | None = None) -> Path:
+def save_snippets(snippets: List[Snippet], path: Optional[Path] = None) -> Path:
     storage_path = init_storage(path)
     data = [snippet.to_dict() for snippet in snippets]
     storage_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     return storage_path
 
 
-def find_snippet(snippets: list[Snippet], name: str) -> Snippet | None:
+def find_snippet(snippets: List[Snippet], name: str) -> Optional[Snippet]:
     for snippet in snippets:
         if snippet.name == name:
             return snippet
     return None
 
 
-def get_snippet(name: str, path: Path | None = None) -> Snippet:
+def get_snippet(name: str, path: Optional[Path] = None) -> Snippet:
     snippet = find_snippet(load_snippets(path), name)
     if snippet is None:
         raise SnippetNotFoundError(f"No snippet named '{name}'")
     return snippet
 
 
-def upsert_snippet(snippets: list[Snippet], snippet: Snippet) -> list[Snippet]:
+def upsert_snippet(snippets: List[Snippet], snippet: Snippet) -> List[Snippet]:
     updated_snippets = list(snippets)
     for index, existing in enumerate(updated_snippets):
         if existing.name == snippet.name:
@@ -129,7 +129,7 @@ def upsert_snippet(snippets: list[Snippet], snippet: Snippet) -> list[Snippet]:
     return updated_snippets
 
 
-def delete_snippet(name: str, path: Path | None = None) -> Snippet:
+def delete_snippet(name: str, path: Optional[Path] = None) -> Snippet:
     snippets = load_snippets(path)
     snippet = find_snippet(snippets, name)
     if snippet is None:

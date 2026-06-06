@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated
+from typing import List, Optional
 
 import click
 import typer
@@ -37,14 +37,12 @@ error_console = Console(stderr=True)
 
 @app.callback()
 def main(
-    version: Annotated[
-        bool,
-        typer.Option(
-            "--version",
-            help="Show the installed cb version and exit.",
-            is_eager=True,
-        ),
-    ] = False,
+    version: bool = typer.Option(
+        False,
+        "--version",
+        help="Show the installed cb version and exit.",
+        is_eager=True,
+    ),
 ) -> None:
     """Run Code Boilerplate Vault."""
     if version:
@@ -57,22 +55,22 @@ def _exit_with_error(message: str) -> None:
     raise typer.Exit(code=1)
 
 
-def _load_snippets_or_exit() -> list[Snippet]:
+def _load_snippets_or_exit() -> List[Snippet]:
     try:
         return load_snippets()
     except StorageCorruptionError as exc:
         _exit_with_error(str(exc))
 
 
-def _save_snippets_or_exit(snippets: list[Snippet]) -> None:
+def _save_snippets_or_exit(snippets: List[Snippet]) -> None:
     try:
         save_snippets(snippets)
     except StorageCorruptionError as exc:
         _exit_with_error(str(exc))
 
 
-def _normalize_tags(tags: list[str] | None) -> list[str]:
-    normalized_tags: list[str] = []
+def _normalize_tags(tags: Optional[List[str]]) -> List[str]:
+    normalized_tags: List[str] = []
     for tag in tags or []:
         normalized_tag = tag.strip()
         if normalized_tag and normalized_tag not in normalized_tags:
@@ -80,7 +78,9 @@ def _normalize_tags(tags: list[str] | None) -> list[str]:
     return normalized_tags
 
 
-def _tags_for_add(tags: list[str] | None, existing: Snippet | None) -> list[str]:
+def _tags_for_add(
+    tags: Optional[List[str]], existing: Optional[Snippet]
+) -> List[str]:
     if tags is not None:
         return _normalize_tags(tags)
     if existing is not None:
@@ -88,7 +88,9 @@ def _tags_for_add(tags: list[str] | None, existing: Snippet | None) -> list[str]
     return []
 
 
-def _description_for_add(description: str | None, existing: Snippet | None) -> str:
+def _description_for_add(
+    description: Optional[str], existing: Optional[Snippet]
+) -> str:
     if description is not None:
         return description.strip()
     if existing is not None:
@@ -126,7 +128,7 @@ def _guess_lexer(snippet: Snippet) -> str:
     return "text"
 
 
-def _print_snippet_table(snippets: list[Snippet], title: str) -> None:
+def _print_snippet_table(snippets: List[Snippet], title: str) -> None:
     table = Table(title=title)
     table.add_column("name", style="bold cyan")
     table.add_column("description")
@@ -155,15 +157,19 @@ def init() -> None:
 
 @app.command()
 def add(
-    name: Annotated[str, typer.Argument(help="Name to save the snippet under.")],
-    tag: Annotated[
-        list[str] | None,
-        typer.Option("--tag", "-t", help="Tag for the snippet. Can be used multiple times."),
-    ] = None,
-    description: Annotated[
-        str | None,
-        typer.Option("--description", "-d", help="Short description of the snippet."),
-    ] = None,
+    name: str = typer.Argument(..., help="Name to save the snippet under."),
+    tag: Optional[List[str]] = typer.Option(
+        None,
+        "--tag",
+        "-t",
+        help="Tag for the snippet. Can be used multiple times.",
+    ),
+    description: Optional[str] = typer.Option(
+        None,
+        "--description",
+        "-d",
+        help="Short description of the snippet.",
+    ),
 ) -> None:
     """Open an editor and save a snippet."""
     snippets = _load_snippets_or_exit()
@@ -198,7 +204,9 @@ def add(
 
 
 @app.command()
-def get(name: Annotated[str, typer.Argument(help="Snippet name to print.")]) -> None:
+def get(
+    name: str = typer.Argument(..., help="Snippet name to print."),
+) -> None:
     """Print a saved snippet."""
     snippets = _load_snippets_or_exit()
     snippet = find_snippet(snippets, name)
@@ -215,7 +223,9 @@ def get(name: Annotated[str, typer.Argument(help="Snippet name to print.")]) -> 
 
 
 @app.command("copy")
-def copy_snippet(name: Annotated[str, typer.Argument(help="Snippet name to copy.")]) -> None:
+def copy_snippet(
+    name: str = typer.Argument(..., help="Snippet name to copy."),
+) -> None:
     """Copy a snippet body to the clipboard."""
     snippets = _load_snippets_or_exit()
     snippet = find_snippet(snippets, name)
@@ -242,7 +252,7 @@ def list_snippets() -> None:
 
 
 @app.command()
-def search(query: Annotated[str, typer.Argument(help="Search query.")]) -> None:
+def search(query: str = typer.Argument(..., help="Search query.")) -> None:
     """Search saved snippets."""
     snippets = _load_snippets_or_exit()
     matches = search_snippets(snippets, query)
@@ -254,7 +264,9 @@ def search(query: Annotated[str, typer.Argument(help="Search query.")]) -> None:
 
 
 @app.command()
-def delete(name: Annotated[str, typer.Argument(help="Snippet name to delete.")]) -> None:
+def delete(
+    name: str = typer.Argument(..., help="Snippet name to delete."),
+) -> None:
     """Delete a saved snippet."""
     snippets = _load_snippets_or_exit()
     snippet = find_snippet(snippets, name)

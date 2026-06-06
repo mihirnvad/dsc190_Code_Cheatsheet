@@ -2,7 +2,7 @@
 
 `cb` is a local command line tool for reusable code snippets, terminal commands, and assignment templates. It solves the problem of wasting time searching for multiple, seperate code snippets that needs to be used often. It keeps code and commands stored locally with quick and easy access with clipboard support.
 
-## What `cb` Can Do
+## Usage
 
 - Save snippets using your default terminal editor.
 - Organize snippets with descriptions and multiple tags.
